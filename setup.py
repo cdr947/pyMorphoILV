@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
 setup.py file for pyMorphoILV
@@ -14,6 +14,6 @@ setup (name = 'pyMorphoILV',
        author_email     = "alromh87@gmail.com",
        description      = """Userspace Morpho ILV Driver""",
        install_requires	= ['pyusb==1.0.0b1'],
+       python_requires  = '>=3.8',
        py_modules       = ["pyMorphoILV"]
       )
-

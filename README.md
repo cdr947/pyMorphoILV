@@ -1,6 +1,6 @@
 # Userspace Morpho ILV Driver
 
-ILV protocol implementation in python to communicate with fingerprint readers from userspace using PyUSB
+ILV protocol implementation in Python to communicate with fingerprint readers from userspace using PyUSB.
 
 ## Supported operations
 - [x] Get info
@@ -14,18 +14,18 @@ ILV protocol implementation in python to communicate with fingerprint readers fr
 - MSO CBM
 
 ## Installation
-### Instal requiered packages:
-apt-get install git python python-setuptools python-pil
+### Install required packages:
+apt-get install git python3 python3-pip python3-pil
 
 ### Install:
-sudo python setup.py install 
+sudo python3 setup.py install
 
 ### Install udev rules and restart udev
 sudo cp 90-morpho.rules /etc/udev/rules.d/
 sudo systemctl restart udev
 
 ### Test
-python testpyMorphoILV.py
+python3 testpyMorphoILV.py
 > scan
 
 ## Usage
