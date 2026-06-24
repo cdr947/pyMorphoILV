@@ -229,7 +229,7 @@ class Terminal(object):
         status = buffer[offset+3]
       if code == 0x71: # "Asynchronous Message" Command
         if status != ILV_OK:
-          return {'status':'Error', 'data':'Erroneous asyncronous message'}
+          return {'status':'Error', 'data':'Erroneous asynchronous message'}
         self.ILVCommand = code;
         if longitud>6:
           return self.processILV(buffer, size, offset+4)
