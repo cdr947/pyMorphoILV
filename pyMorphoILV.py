@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import usb.core
@@ -24,14 +24,14 @@ knownMorphoTerminals = [
 
 class Terminal(object):
   def __init__(self, vendID=def_vendID, prodID=0, baudrate=def_baudrate, endPOut=def_endPOut, endPIn = def_endPIn):
-    print "Starting Morpho Terminal"
+    print("Starting Morpho Terminal")
     # Look for a specific device and open it
     if prodID == 0:
       found = searchTerminal()
       if len(found)==0:
         raise ValueError('No morpho terminal found!!')
       else:
-        print found[0][1]
+        print(found[0][1])
         dev = found[0][0]
         baudrate, endPOut, endPIn = paramsFromFound(found[0][1])
 #        print "Found! inicializar %d,%d,%d"%(baudrate, endPOut, endPIn)
@@ -83,12 +83,12 @@ class Terminal(object):
     # Send command
     payload.extend(data);
     # Send EN
-    tailData = bytearray("EN");
+    tailData = bytearray(b"EN");
     payload.extend(tailData)
 
     self.lector.write(self.endPOut, payload, interface = 1)
     if __debug__:
-      print "Sending: ", ":".join("{:02x}".format(c,'02x') for c in payload)
+      print("Sending: ", ":".join("{:02x}".format(c,'02x') for c in payload))
 
   def startRead(self, q):
     readThread = Thread(target=self.read, args=(q,))
@@ -96,7 +96,7 @@ class Terminal(object):
     self.readThread = readThread
 
   def read(self, out_q):
-    t = threading.currentThread()
+    t = threading.current_thread()
     serialReading = False
     serialErrorReported = False
     while getattr(t, "do_run", True):
@@ -106,9 +106,9 @@ class Terminal(object):
         if not serialReading: #Start reading buffer
           if len(data) < 6:
             out_q.put({'status':'Error','data':'Comunication error with biometric reader'})
-	    continue
+            continue
           if data[0] == 0x53 and data[1] == 0x59 and data[2] == 0x4E and data[3] == 0x43: #Header found, start reading
-	    #print "'SYNC' found"
+            #print "'SYNC' found"
             if data[-1]==0x4E and data[-2]==0x45: #End found, process complete chunk
               out_q.put(self.processILV(data, len(data), 12))
             else: #Else, start new reading buffer
@@ -215,21 +215,21 @@ class Terminal(object):
     ILVSTS_MOIST_FINGER	= 0x23;
 
     if buffer[offset] == 0x50:
-      print "Invalid ILV command"
+      print("Invalid ILV command")
     else:
       code = buffer[offset];
       longitud = (buffer[offset+1]&0xFF) + ((buffer[offset+2]<<8)&0xFF00);
       if longitud==65535: # Bigger message, use 4 bytes
         offset+=2
-	longitud = (buffer[offset+1]&0xFF) + ((buffer[offset+2]<<8)&0xFF00) + ((buffer[offset+3]<<16)&0xFF0000) + ((buffer[offset+4]<<24)&0xFF000000)
-	offset+=2
+        longitud = (buffer[offset+1]&0xFF) + ((buffer[offset+2]<<8)&0xFF00) + ((buffer[offset+3]<<16)&0xFF0000) + ((buffer[offset+4]<<24)&0xFF000000)
+        offset+=2
       #print "ILV command Length = ", str(longitud)
       status = 0xFF
       if longitud>0:
         status = buffer[offset+3]
       if code == 0x71: # "Asynchronous Message" Command
         if status != ILV_OK:
-	  return {'status':'Error', 'data':'Erroneous asyncronous message'}
+          return {'status':'Error', 'data':'Erroneous asynchronous message'}
         self.ILVCommand = code;
         if longitud>6:
           return self.processILV(buffer, size, offset+4)
@@ -241,31 +241,31 @@ class Terminal(object):
           pass
         elif code == 0x02: # Asynchronous image message
           return {'status':'huella', 'data': self.processImage(buffer, offset)}
-	else:
-          print "Unknown asynchronous message"
+        else:
+          print("Unknown asynchronous message")
         return;
       if code == 0x22: # Identification command
         if status != ILV_OK:
-          print "Error code %d" % status
-	  if status != ILVERR_CMDE_ABORTED:
-            print "Biometric device error, please try again"
+          print("Error code %d" % status)
+          if status != ILVERR_CMDE_ABORTED:
+            print("Biometric device error, please try again")
           return;
         if buffer[offset+4]==ILVSTS_HIT:
           dbIdx = buffer[offset+5]+(buffer[offset+6]<<8)+(buffer[offset+7]<<16)+(buffer[offset+8]<<24)
-          print "Identified user"
+          print("Identified user")
           ILVCommand = code
           if longitud>6:
             self.processILV(buffer, size, offset+9)
         else:
-          print "Unidentified user"
+          print("Unidentified user")
         return
       if code == 0x21: # Enrol command
         ILVCommand = code
         if status != ILV_OK:
-          print "Error code %d" % status
+          print("Error code %d" % status)
           if status != ILVERR_CMDE_ABORTED:
-            print "Biometric device error, please try again"
-	  return
+            print("Biometric device error, please try again")
+          return
         if buffer[offset+4]==ILVSTS_OK:
           dbIdx = buffer[offset+5]+(buffer[offset+6]<<8)+(buffer[offset+7]<<16)+(buffer[offset+8]<<24)
           #print "User correctly enrolled"
@@ -273,8 +273,8 @@ class Terminal(object):
           if longitud>6:
             return self.processILV(buffer, size, offset+9)
         else:
-          print "User not enrolled, please try again"
-	return
+          print("User not enrolled, please try again")
+        return
       if code == 0x3d: # Image command
         ILVCommand = code
         #print "Final fingerprint received"
@@ -342,7 +342,7 @@ class Terminal(object):
     imgSize		= rowNumber*colNumber
     offset+=15
 #    print "----Image data---- \nrowNumber: %d \ncolNumber: %d \nvertRes: %d \nhorzRes: %d \n%d \n%d" % (rowNumber, colNumber, vertRes, horzRes, compression, compressionParam)
-    huella = buffer[offset:offset+imgSize].tostring()
+    huella = buffer[offset:offset+imgSize].tobytes()
     return {'rowNumber':rowNumber, 'colNumber':colNumber, 'huella':huella}
 
   #Misc / closing
@@ -351,7 +351,7 @@ class Terminal(object):
 
   def close(self):
     if hasattr(self, 'readThread'):
-      print "Ending read Thread"
+      print("Ending read Thread")
       self.readThread.do_run = False
       self.readThread.join()
       del(self.readThread)
@@ -365,10 +365,10 @@ def searchTerminal():
     else:
       vendID = def_vendID
       terminal['vendID'] = def_vendID
-    print "Searching %s : %d"% (terminal['name'], vendID) 
+    print("Searching %s : %d"% (terminal['name'], vendID))
     dev = usb.core.find(idVendor=vendID, idProduct=terminal['prodID'])
     if dev is not None:
-      print "Found", terminal['name']
+      print("Found", terminal['name'])
       found.append([dev,terminal])
   return found
 
