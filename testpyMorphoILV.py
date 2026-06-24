@@ -29,7 +29,7 @@ def signal_term_handler(signal, frame):
  
 signal.signal(signal.SIGTERM, signal_term_handler)
 
-def exit_handler(do_exit=True):
+def cleanup():
   print('My application is ending!')
   try:
     morph.close()
@@ -37,10 +37,12 @@ def exit_handler(do_exit=True):
     readThread.join()
   except NameError:
     pass
-  if do_exit:
-    sys.exit(0)
 
-atexit.register(lambda: exit_handler(do_exit=False))
+def exit_handler():
+  cleanup()
+  sys.exit(0)
+
+atexit.register(cleanup)
 
 try:
   morph = pyMorphoILV.Terminal()
@@ -51,11 +53,10 @@ except ValueError as e:
 
 # A thread that consumes data
 def consumer(in_q):
-  t = threading.current_thread()
   tarea = ""
   expediente = ""
   huella64 = ""
-  while getattr(t, "do_run", True):
+  while getattr(threading.current_thread(), "do_run", True):
     if not in_q.empty():
       data = in_q.get()
       if data is not None:
